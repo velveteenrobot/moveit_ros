@@ -589,29 +589,6 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Planning Attempts:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="planning_attempts">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximum">
-               <number>1000</number>
-              </property>
-              <property name="value">
-               <number>10</number>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
@@ -662,16 +639,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="allow_external_program">
-            <property name="text">
-             <string>Allow External Comm.</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
              <string>Path Constraints:</string>
@@ -694,6 +661,13 @@
              <widget class="QDoubleSpinBox" name="goal_tolerance"/>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clear_octomap_button">
+            <property name="text">
+             <string>Clear octomap</string>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="verticalSpacer_2">

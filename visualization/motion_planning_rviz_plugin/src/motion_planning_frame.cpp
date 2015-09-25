@@ -36,11 +36,14 @@
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/move_group/capability_names.h>
 
 #include <geometric_shapes/shape_operations.h>
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+
+#include <std_srvs/Empty.h>
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -56,7 +59,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   planning_display_(pdisplay),
   context_(context),
   ui_(new Ui::MotionPlanningUI()),
-  first_time_(true)
+  first_time_(true),
+  clear_octomap_service_client_(nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME))
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -78,7 +82,6 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
   connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
   connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
-  connect( ui_->allow_external_program, SIGNAL( toggled(bool) ), this, SLOT( allowExternalProgramCommunication(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
   connect( ui_->import_file_button, SIGNAL( clicked() ), this, SLOT( importFileButtonClicked() ));
   connect( ui_->import_url_button, SIGNAL( clicked() ), this, SLOT( importUrlButtonClicked() ));
@@ -97,6 +100,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectChanged( QListWidgetItem * ) ));
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
+  connect( ui_->clear_octomap_button, SIGNAL( clicked() ), this, SLOT( onClearOctomapClicked() ));
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
   connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
   connect( ui_->export_scene_text_button, SIGNAL( clicked() ), this, SLOT( exportAsTextButtonClicked() ));
@@ -194,29 +198,6 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
-void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
-{
-  planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
-  planning_display_->toggleSelectPlanningGroupSubscription(enable);
-  if (enable)
-  {
-    ros::NodeHandle nh;
-    plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
-    execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
-    update_start_state_subscriber_ = nh.subscribe("/rviz/moveit/update_start_state",1,
-                                                  &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
-    update_goal_state_subscriber_ = nh.subscribe("/rviz/moveit/update_goal_state",1,
-                                                 &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
-  }
-  else
-  {                        // disable
-    plan_subscriber_.shutdown();
-    execute_subscriber_.shutdown();
-    update_start_state_subscriber_.shutdown();
-    update_goal_state_subscriber_.shutdown();
-  }
-}
-  
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
   ui_->start_state_selection->clear();
@@ -445,13 +426,4 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
     scene_marker_->update(wall_dt);
 }
 
-void MotionPlanningFrame::updateExternalCommunication()
-{
-  if (ui_->allow_external_program->isChecked())
-  {
-    planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(true);
-  }
-}
-
-  
 } // namespace

@@ -347,6 +347,8 @@ public:
   /** \brief Lock the scene from writing (only one thread can lock for writing and no other thread can lock for reading) */
   void unlockSceneWrite();
 
+  void clearOctomap();
+
 protected:
 
   /** @brief Initialize the planning scene monitor
@@ -489,11 +491,6 @@ private:
   /// the amount of time to wait in between updates to the robot state
   // This field is protected by state_pending_mutex_
   ros::WallDuration dt_state_update_;
-
-  /// the amount of time to wait when looking up transforms
-  // Setting this to a non-zero value resolves issues when the sensor data is
-  // arriving so fast that it is preceding the transform state.
-  ros::Duration shape_transform_cache_lookup_wait_time_;
 
   /// timer for state updates.
   // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()

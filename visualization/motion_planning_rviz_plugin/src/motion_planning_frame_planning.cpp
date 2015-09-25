@@ -40,6 +40,8 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
 
+#include <std_srvs/Empty.h>
+
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
 namespace moveit_rviz_plugin
@@ -88,6 +90,12 @@ void MotionPlanningFrame::pathConstraintsIndexChanged(int index)
     else
       move_group_->clearPathConstraints();
   }
+}
+
+void MotionPlanningFrame::onClearOctomapClicked()
+{
+  std_srvs::Empty srv;
+  clear_octomap_service_client_.call(srv);
 }
 
 void MotionPlanningFrame::computePlanButtonClicked()
@@ -329,43 +337,4 @@ void MotionPlanningFrame::configureForPlanning()
   configureWorkspace();
 }
 
-void MotionPlanningFrame::remotePlanCallback(const std_msgs::EmptyConstPtr& msg)
-{
-  planButtonClicked();
-}
-
-void MotionPlanningFrame::remoteExecuteCallback(const std_msgs::EmptyConstPtr& msg)
-{
-  executeButtonClicked();
-}
-
-void MotionPlanningFrame::remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg)
-{
-  if (move_group_ && planning_display_)
-  {
-    robot_state::RobotState state = *planning_display_->getQueryStartState();
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-    if (ps)
-    {
-      state = ps->getCurrentState();
-      planning_display_->setQueryStartState(state);
-    }
-  }
-}
-
-void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg)
-{
-  if (move_group_ && planning_display_)
-  {
-    robot_state::RobotState state = *planning_display_->getQueryStartState();
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-    if (ps)
-    {
-      state = ps->getCurrentState();
-      planning_display_->setQueryGoalState(state);
-    }
-  }
-}
-
-  
 }
